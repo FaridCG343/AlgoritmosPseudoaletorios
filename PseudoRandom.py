@@ -16,7 +16,9 @@ class PseudoRandom:
         return list_generated
 
     def __middle_square(self, quantity) -> list:
+        #
         list_generated = []
+        dict_generated = []
         xi = self.seed  # Set the seed
         for i in range(quantity):
             xi = xi ** 2  # Square the seed
@@ -27,29 +29,35 @@ class PseudoRandom:
                 xi = "0" + xi
                 left = left + 1
             right = left + len(str(self.seed))  # Get the right side of the string
+
+            dict_temp = {"i": i + 1, "left": xi[:left], "xi": xi[left:right], "right": xi[right:]}
             xi = xi[left:right]  # Get the middle of the string
+            dict_temp["ri"] = "0." + xi  # Add a dot to the left of the number
             xi = int(xi)  # Convert to integer
             if xi in list_generated:  # If the number is already in the list, return the list
-                return list_generated
+                return dict_generated
             list_generated.append(xi)  # Append the number to the list
-        return list_generated
+            dict_generated.append(dict_temp)
+        return dict_generated
 
     def linear_congruential(self, quantity, a, c, m) -> list:
         if quantity < 1:
             raise Exception("Quantity must be greater than 0")
-        list_generated = self.__linear_congruential(quantity, self.seed, a, c, m)
+        list_generated = self.__linear_congruential(quantity, a, c, m)
         return list_generated
 
-    def __linear_congruential(self, quantity, xi, a, c, m, i=0, list_generated=None) -> list:
-        if list_generated is None:
-            list_generated = []
-        if i == quantity:
-            return list_generated
-        xi = (a * xi + c) % m
-        if xi in list_generated:
-            return list_generated
-        list_generated.append(xi)
-        return self.__linear_congruential(quantity, xi, a, c, m, i + 1, list_generated)
+    def __linear_congruential(self, quantity, a, c, m) -> list:
+        list_generated = []
+        dict_generated = []
+        xi = self.seed  # Set the seed
+        for i in range(quantity):
+            xi = (a * xi + c) % m
+            if xi in list_generated:
+                return list_generated
+            list_generated.append(xi)
+            dict_temp = {"i": i + 1, "xi": xi, "ri": "0." + str(xi)}
+            dict_generated.append(dict_temp)
+        return dict_generated
 
     def quadratic_congruential(self, quantity, a, b, c, m) -> list:
         if quantity < 1:
