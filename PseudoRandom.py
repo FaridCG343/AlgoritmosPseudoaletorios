@@ -57,13 +57,15 @@ class PseudoRandom:
         list_generated = self.__quadratic_congruential(quantity, self.seed, a, b, c, m)
         return list_generated
 
-    def __quadratic_congruential(self, quantity, xi, a, b, c, m, i=0, list_generated=None) -> list:
-        if list_generated is None:
-            list_generated = []
-        if i == quantity:
-            return list_generated
-        xi = (a * xi ** 2 + b * xi + c) % m
-        if xi in list_generated:
-            return list_generated
-        list_generated.append(xi)
-        return self.__quadratic_congruential(quantity, xi, a, b, c, m, i + 1, list_generated)
+    def __quadratic_congruential(self, quantity, xi, a, b, c, m) -> list:
+        list_generated = []
+        list_xi = []
+        for i in range(quantity):
+            xi = ((a * xi ** 2) + (b * xi) + c) % m 
+            xi_decimal = float('0.'+str(xi))
+            temp_dict= {i: [xi,xi_decimal]}
+            if xi in list_xi:
+                return list_generated
+            list_generated.append(temp_dict)
+            list_xi.append(xi)
+        return list_generated
