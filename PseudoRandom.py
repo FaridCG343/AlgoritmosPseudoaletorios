@@ -8,10 +8,10 @@ class PseudoRandom:
     def middle_square(self, quantity) -> list:
         # Seed must have at least 4 digits otherwise it will raise an exception
         if len(str(self.seed)) < 4:
-            raise Exception("Seed must have at least 4 digits")
+            raise Exception("La semilla debe tener al menos 4 dígitos.")
         # Quantity must be greater than 0 otherwise it will raise an exception
         if quantity < 1:
-            raise Exception("Quantity must be greater than 0")
+            raise Exception("La cantidad debe ser mayor a 0.")
         list_generated = self.__middle_square(quantity)
         return list_generated
 
@@ -42,7 +42,10 @@ class PseudoRandom:
 
     def linear_congruential(self, quantity, a, c, m) -> list:
         if quantity < 1:
-            raise Exception("Quantity must be greater than 0")
+            raise Exception("La cantidad debe ser mayor a 0.")
+        # verify that the parameters are greater than 0
+        if a < 1 or c < 1 or m < 1:
+            raise Exception("Los parámetros deben ser mayores a 0.")
         list_generated = self.__linear_congruential(quantity, a, c, m)
         return list_generated
 
@@ -53,7 +56,7 @@ class PseudoRandom:
         for i in range(quantity):
             xi = (a * xi + c) % m
             if xi in list_generated:
-                return list_generated
+                return dict_generated
             list_generated.append(xi)
             dict_temp = {"i": i + 1, "xi": xi, "ri": "0." + str(xi)}
             dict_generated.append(dict_temp)
@@ -61,19 +64,23 @@ class PseudoRandom:
 
     def quadratic_congruential(self, quantity, a, b, c, m) -> list:
         if quantity < 1:
-            raise Exception("Quantity must be greater than 0")
-        list_generated = self.__quadratic_congruential(quantity, self.seed, a, b, c, m)
+            raise Exception("La cantidad debe ser mayor a 0.")
+        # verify that the parameters are greater than 0
+        if a < 1 or b < 1 or c < 1 or m < 1:
+            raise Exception("Los parámetros deben ser mayores a 0.")
+        list_generated = self.__quadratic_congruential(quantity, a, b, c, m)
         return list_generated
 
-    def __quadratic_congruential(self, quantity, xi, a, b, c, m) -> list:
+    def __quadratic_congruential(self, quantity, a, b, c, m) -> list:
         list_generated = []
-        list_xi = []
+        dict_generated = []
+        xi = self.seed
         for i in range(quantity):
             xi = ((a * xi ** 2) + (b * xi) + c) % m 
-            xi_decimal = float('0.'+str(xi))
-            temp_dict= {i: [xi,xi_decimal]}
-            if xi in list_xi:
-                return list_generated
-            list_generated.append(temp_dict)
-            list_xi.append(xi)
-        return list_generated
+            xi_decimal = '0.'+str(xi)
+            temp_dict = {"i": i + 1, "xi": xi, "ri": xi_decimal}
+            if xi in list_generated:
+                return dict_generated
+            list_generated.append(xi)
+            dict_generated.append(temp_dict)
+        return dict_generated
