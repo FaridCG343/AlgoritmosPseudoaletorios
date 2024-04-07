@@ -1,79 +1,20 @@
 import matplotlib.pyplot
-import numpy as np
 from PySide6.QtGui import QIntValidator, QIcon
 from PySide6.QtWidgets import (QMainWindow, QPushButton, QTableWidget, QTableWidgetItem,
                                QLineEdit, QLabel, QHBoxLayout, QVBoxLayout, QWidget, QComboBox, QGridLayout,
                                QMessageBox)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-
-from PseudoRandom import PseudoRandom
-
-
-class QtIcon:
-    pass
-
-
-def plot_scatter(data, ax=None):
-    ri_values = [float(dic['ri']) for dic in data if 'ri' in dic]
-    ax.scatter(range(len(ri_values)), ri_values, color="#00E5EE")
-
-
-def plot_run_sequence(data, ax=None):
-    runs = []
-    directions = []  # 1 up, -1 down
-
-    for i in range(1, len(data)):
-        if data[i]["ri"] > data[i - 1]["ri"]:
-            runs.append(data[i - 1]["ri"])
-            directions.append(1)  # Up
-        elif data[i]["ri"] < data[i - 1]["ri"]:
-            runs.append(data[i - 1]["ri"])
-            directions.append(-1)  # Down
-
-    # Add the last value
-    runs.append(data[-1]["ri"])
-    if directions[-1] == 1:
-        directions.append(1)
-    else:
-        directions.append(-1)
-
-    # Convert to numpy arrays
-    runs = np.array(runs)
-    directions = np.array(directions)
-
-    # Plot the runs
-    for i in range(len(runs) - 1):
-        if directions[i] == 1:
-            ax.plot([i, i + 1], [runs[i], runs[i + 1]], 'g-')  # Verde para arriba
-        else:
-            ax.plot([i, i + 1], [runs[i], runs[i + 1]], 'r-')  # Rojo para abajo
-
-    # Set the title and labels
-    ax.set_title('Corrida Arriba/Abajo')
-    ax.set_xlabel('Índice')
-    ax.set_ylabel('Valor')
-
-    # Set the grid
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-
-
-def plot_box(data, ax=None):
-    ri_values = [float(dic['ri']) for dic in data if 'ri' in dic]
-    boxprops = dict(linestyle='-', linewidth=3, color='#00E5EE')
-    flierprops = dict(marker='o', color='#00E5EE', markersize=8)
-    ax.boxplot(ri_values, boxprops=boxprops, flierprops=flierprops)
-
-
-def plot_variance(data, ax=None):
-    ri_values = [float(dic['ri']) for dic in data if 'ri' in dic]
-    ax.plot(range(len(ri_values)), ri_values, color="#00E5EE")
+from utils.PseudoRandom import PseudoRandom
+from views.InverseTransformVw import InverseTransformVw
+from utils.Plots import plot_scatter, plot_box, plot_variance
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.inverse_transform = None
         self.list_generated = []
 
         # region Main layout
@@ -135,6 +76,12 @@ class MainWindow(QMainWindow):
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
         left_layout.addWidget(self.canvas)
+
+        # Add a button to open the InverseTransform window
+        self.inverse_transform_button = QPushButton("Transformada Inversa")
+        self.inverse_transform_button.setEnabled(False)
+        left_layout.addWidget(self.inverse_transform_button)
+
         self.left_widget = QWidget()  # Crear un widget para contener el layout izquierdo
         self.left_widget.setLayout(left_layout)
         self.left_widget.setMaximumWidth(400)
@@ -194,6 +141,10 @@ class MainWindow(QMainWindow):
             QPushButton:pressed {
                 background-color: #888;
             }
+            QPushButton:disabled {
+                background-color: #444;
+                color: #888;
+            }
         """)
         self.table.setStyleSheet("""
             QHeaderView::section {
@@ -250,6 +201,8 @@ class MainWindow(QMainWindow):
             }
         """)
 
+
+
         # endregion
 
         # region Connections
@@ -262,6 +215,9 @@ class MainWindow(QMainWindow):
 
         # Connect the button to the generate method
         self.generate_button.clicked.connect(self.generate)
+
+        # Connect the button to the display_inverse_transform method
+        self.inverse_transform_button.clicked.connect(self.display_inverse_transform)
         # endregion
 
         # region Window settings
@@ -383,3 +339,13 @@ class MainWindow(QMainWindow):
 
         # Resize the columns to fit the content
         self.table.resizeColumnsToContents()
+
+        # Enable the inverse transform button
+        self.inverse_transform_button.setEnabled(True)
+
+    def display_inverse_transform(self):
+        data = [float(dic['ri']) for dic in self.list_generated if 'ri' in dic]
+        self.inverse_transform = InverseTransformVw(data)
+        self.inverse_transform.close_window.connect(self.show)
+        self.inverse_transform.show()
+        self.hide()
